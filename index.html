@@ -96,6 +96,7 @@
     const nameInputElement = document.getElementById ("name-input");
     const commentInputElement = document.getElementById("text-input");
     const comments = document.querySelector(".comments");
+    
 
     const initEventListeners = () => {
     const likeButtons = document.querySelectorAll('.like-button');
@@ -110,16 +111,45 @@
     }
     };
 
+    buttonElement.disabled = true;
 
-    const renderComments = () => {
-      comments.innerHTML = commentsArr
+    document.addEventListener("input", () => {
+    nameInputElement.value != "" && commentInputElement.value != ""
+      ? (buttonElement.disabled = false)
+      : (buttonElement.disabled = true);
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (
+      (e.code === "Enter" || e.code === "NumpadEnter") &&
+      !buttonElement.disabled
+    ) {
+      createNewComment();
+      renderComments();
+    }
+  });
+
+  const replyToComment = () => {
+    const commentBodies = document.querySelectorAll(".comment-body");
+    for (const commentBody of commentBodies) {
+      commentBody.addEventListener('click', () => {
+        const oldComment = commentBody.dataset.text;
+        const oldName = commentBody.dataset.name;
+        commentInputElement.value += `${oldComment}\n${oldName}`;
+      })
+    }
+
+  }
+
+  const renderComments = () => {
+    comments.innerHTML = commentsArr
       .map((comment, index) => {
         return `<li class="comment">
           <div class="comment-header">
             <div>${comment.name}</div>
             <div>${comment.date}</div>
           </div>
-          <div class="comment-body">
+          <div class="comment-body" data-text = "${comment.comment}" data-name = "${comment.name}">
             <div class="comment-text">
               ${comment.comment}
             </div>
@@ -133,70 +163,43 @@
         </li>`
       })
       .join("");
-      
-      initEventListeners();
-    }
-    renderComments();
-    
-  
+    commentInputElement.value = "";
+    nameInputElement.value = "";
+    buttonElement.disabled = true;
+    initEventListeners();
+    replyToComment();
+  }
+  renderComments();
 
-    const plusZero = (str) => {
-      return str < 10 ? `0${str}` : str;
-    }
-    let currentDate = new Date();
-    const now = (currentDate) => {
+  const plusZero = (str) => {
+    return str < 10 ? `0${str}` : str;
+  }
+
+
+
+  const now = (currentDate) => {
     let minute = plusZero(currentDate.getMinutes());
     let hours = plusZero(currentDate.getHours());
     let date = plusZero(currentDate.getDate());
     let month = plusZero(currentDate.getMonth());
     return `${date}.${month}.${currentDate.getFullYear() % 100} ${hours}:${minute}`;
-    }
+  }
 
-    initEventListeners();
-
-      buttonElement.addEventListener("click", () => {
-      nameInputElement.classList.remove("error");
-      commentInputElement.classList.remove("error");
-      if (nameInputElement.value === "") {
-        nameInputElement.classList.add("error");
-        return;
-      }
-      if (commentInputElement.value === "") {
-        commentInputElement.classList.add("error");
-        return;
-      }   
-
-      commentsArr.push({
-        name: nameInputElement.value,
-        date: now(currentDate),
-        comment: commentInputElement.value,
-        likesCounter: '0',
-        myLike: false,
-      });
-      
-      renderComments();
-
-      /* const oldListHtml = listElement.innerHTML;
-      listElement.innerHTML = oldListHtml + `<li class="comment">
-          <div class="comment-header">
-            <div>${nameInputElement.value}</div>
-            <div>${now(currentDate)}</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              ${commentInputElement.value}
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">${comment.likesCounter}</span>
-              <button data-index = '${index}' class="${comment.myLike ? 'like-button -active-like' : 'like-button'}"></button>
-            </div>
-          </div>
-        </li>`; */
-
-        initEventListeners();
+  const createNewComment = () => {
+    let currentDate = new Date();
+    commentsArr.push({
+      name: nameInputElement.value.replaceAll('<', "&lt;").replaceAll('>', '&gt'),
+      date: now(currentDate),
+      comment: commentInputElement.value.replaceAll('<', "&lt;").replaceAll('>', '&gt'),
+      likesCounter: 0,
+      myLike: false,
     });
+  }
+
+  buttonElement.addEventListener("click", () => {
+    createNewComment();
+    renderComments();    
+  });
     console.log("It works!");
   </script>
 </html>
